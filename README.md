@@ -25,6 +25,8 @@
 
 > 注意：扩展只在**电脑端浏览器**的 ted.com 网页版生效，手机 App 不支持。
 
+> **从源码安装（克隆本仓库）时注意**：本仓库为避开平台对第三方压缩库的密钥**误报**，未包含本地 Whisper 使用的 `src/asr/vendor/transformers.min.js`。若只用 TED / YouTube 的在线字幕与 AI 翻译，**不受影响**；若要使用「③ 本地 Whisper（浏览器内识别）」，请到 [Releases](../../releases) 下载**完整 zip** 解压使用，或自行把该文件放回 `src/asr/vendor/transformers.min.js`。
+
 ## 使用
 
 - 底部字幕条上的按钮：`⏮ ⏯ 🔁 ⏭`（上/重播/循环/下一句）、模式切换、自测遮罩、逐句面板 `📄`、生词本 `📖`、设置 `⚙`。
