@@ -5,6 +5,10 @@ tools/**/node_modules/
 # 打包产物与快照（源码已包含，无需提交）
 dist/
 
+# 本地 ASR 运行库：体积较大，且会被 GitHub 误判为密钥而拦截推送，
+# 因此不纳入仓库，随 Release 的完整 zip 一起分发。
+src/asr/vendor/transformers.min.js
+
 # 其它
 *.log
 .env
