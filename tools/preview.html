@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TED 双语字幕 · 本地预览</title>
+    <link rel="stylesheet" href="../src/content/overlay.css" />
+    <style>
+      html, body { margin: 0; height: 100%; }
+      body {
+        background: #0d0f14;
+        color: #eee;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      .stage {
+        height: 62vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at 50% 40%, #23283a, #0d0f14 70%);
+        position: relative;
+      }
+      .stage .title { position: absolute; top: 18px; left: 20px; font-size: 14px; color: #9aa3b5; }
+      .stage .mock { font-size: 40px; opacity: 0.25; }
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        background: #14171f;
+        border-top: 1px solid #232a3a;
+      }
+      .bar button { min-width: 90px; padding: 8px 14px; border-radius: 8px; border: 1px solid #333c50; background: #1d2230; color: #fff; cursor: pointer; }
+      .bar input[type="range"] { flex: 1; accent-color: #e62b1e; }
+      .bar .t { font-variant-numeric: tabular-nums; color: #cfd3dc; font-size: 13px; min-width: 110px; }
+      .wrap { padding: 16px 20px 220px; color: #9aa3b5; font-size: 13px; line-height: 1.7; }
+      code { color: #ffd54a; }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="title">TED 双语字幕 · 本地预览（真实字幕数据）</div>
+      <div class="mock">▶ 模拟播放器</div>
+    </div>
+    <div class="bar">
+      <button id="play">播放</button>
+      <input id="seek" type="range" min="0" max="100" value="0" />
+      <span class="t" id="time">0:00 / 0:00</span>
+      <button id="fs">全屏</button>
+    </div>
+    <div class="wrap">
+      <p>这是用真实 TED 字幕数据驱动的预览页，用于验收字幕层、单词点查、控制栏与逐句面板的渲染。快捷键：<code>J</code> 下一句 · <code>K</code> 上一句 · <code>R</code> 重播 · <code>M</code> 模式 · <code>H</code> 遮罩 · <code>T</code> 面板。</p>
+    </div>
+
+    <script src="preview-shim.js"></script>
+    <script src="../src/lib/align.js"></script>
+    <script src="../src/lib/vocab.js"></script>
+    <script src="../src/content/sync.js"></script>
+    <script src="../src/content/player.js"></script>
+    <script src="../src/content/overlay.js"></script>
+    <script src="sample-data.js"></script>
+    <script src="preview.js"></script>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>ASR 音轨抓取与转码 · 本地测试</title>
+    <style>
+      body { font-family: -apple-system, "Microsoft YaHei", sans-serif; padding: 20px; }
+      #log { white-space: pre-wrap; font-family: monospace; font-size: 13px; line-height: 1.6; }
+      .ok { color: #0a7; } .err { color: #c00; }
+    </style>
+  </head>
+  <body>
+    <h3>TED 音轨抓取 + TS→m4a 转码 验证</h3>
+    <div id="log">开始…</div>
+    <audio id="au" controls></audio>
+    <script src="../src/asr/mux.min.js"></script>
+    <script>
+      (function () {
+        var log = document.getElementById('log');
+        var proxy = function (u) { return '/proxy?url=' + encodeURIComponent(u); };
+        function out(t, cls) { log.innerHTML += '\n<span class="' + (cls || '') + '">' + t + '</span>'; }
+        function concat(arrs) {
+          var len = 0; arrs.forEach(function (a) { len += a.length; });
+          var o = new Uint8Array(len), off = 0;
+          arrs.forEach(function (a) { o.set(a, off); off += a.length; });
+          return o;
+        }
+        (async function () {
+          try {
+            var base = 'https://hls.ted.com/project_masters/1253/';
+            var master = await (await fetch(proxy(base + 'manifest.m3u8?intro_master_id=9294'))).text();
+            var audioUri = (master.match(/TYPE=AUDIO[^\n]*URI="([^"]+)"/) || [])[1];
+            out('AUDIO playlist: ' + audioUri);
+            var pl = await (await fetch(proxy(base + audioUri))).text();
+            var rawLines = pl.split('\n');
+            var firstDisc = -1;
+            rawLines.forEach(function (l, i) { if (firstDisc < 0 && l.trim().indexOf('#EXT-X-DISCONTINUITY') === 0) firstDisc = i; });
+            out('首个 discontinuity 行: ' + firstDisc + (firstDisc >= 0 ? '（之前为片头，将丢弃）' : '（无）'));
+            var entries = [], dur = null;
+            rawLines.forEach(function (l, i) {
+              l = l.trim();
+              if (l.indexOf('#EXTINF:') === 0) dur = parseFloat(l.slice(8));
+              else if (l && l[0] !== '#' && /\.(ts|m4s|aac|mp4)/i.test(l)) {
+                if (firstDisc < 0 || i > firstDisc) entries.push({ url: l, dur: dur });
+                dur = null;
+              }
+            });
+            out('正片分片数: ' + entries.length + '，前3片时长: ' + entries.slice(0, 3).map(function (e) { return e.dur; }).join(', '));
+
+            // 按 30s 切段（测试用，正式为 600s）
+            var chunks = [], cur = [], curDur = 0;
+            entries.forEach(function (e) { cur.push(e); curDur += e.dur; if (curDur >= 30) { chunks.push({ items: cur, dur: curDur }); cur = []; curDur = 0; } });
+            if (cur.length) chunks.push({ items: cur, dur: curDur });
+            out('按30s切段: ' + chunks.length + ' 段，首段 ' + Math.round(chunks[0].dur) + 's / ' + chunks[0].items.length + ' 片');
+
+            var segs = [], t0 = Date.now();
+            for (var i = 0; i < chunks[0].items.length; i++) {
+              var r = await fetch(proxy(chunks[0].items[i].url));
+              segs.push(new Uint8Array(await r.arrayBuffer()));
+            }
+            out('首段下载 ' + segs.length + ' 片完成，用时 ' + ((Date.now() - t0) / 1000).toFixed(1) + 's');
+
+            var t = new muxjs.mp4.Transmuxer({ remux: true });
+            var init = null, parts = [];
+            t.on('data', function (seg) { if (seg.initSegment && !init) init = seg.initSegment; if (seg.data) parts.push(seg.data); });
+            segs.forEach(function (u8) { t.push(u8); t.flush(); });
+            if (!init) { out('转码失败：没有 initSegment', 'err'); return; }
+            var bytes = concat([init].concat(parts));
+            var est = chunks[0].dur * 1024 / 8 / 1024; // 粗略
+            out('首段转码完成：' + (bytes.length / 1024 / 1024).toFixed(2) + ' MB m4a', 'ok');
+
+            var au = document.getElementById('au');
+            var blob = new Blob([bytes], { type: 'audio/mp4' });
+            au.src = URL.createObjectURL(blob);
+            au.onloadedmetadata = function () {
+              out('音频时长: ' + au.duration.toFixed(2) + ' 秒（首段应≈' + Math.round(chunks[0].dur) + '秒）', 'ok');
+            };
+            au.onerror = function () { out('音频无法解码（转码可能有问题）', 'err'); };
+
+            // 验证浏览器能否把 m4a 解码成 PCM（百炼实时识别需要 PCM）
+            try {
+              var ac = new (window.AudioContext || window.webkitAudioContext)();
+              ac.decodeAudioData(bytes.buffer.slice(0), function (buf) {
+                out('decodeAudioData 成功：采样率 ' + buf.sampleRate + ' Hz，时长 ' + buf.duration.toFixed(2) + 's，声道 ' + buf.numberOfChannels, 'ok');
+              }, function (err) {
+                out('decodeAudioData 失败：' + err, 'err');
+              });
+            } catch (e) {
+              out('decodeAudioData 异常：' + e.message, 'err');
+            }
+          } catch (e) {
+            out('异常: ' + (e.message || e), 'err');
+          }
+        })();
+      })();
+    </script>
+  </body>
+</html>

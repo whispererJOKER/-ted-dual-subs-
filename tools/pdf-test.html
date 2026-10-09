@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDF 导出 · 本地测试</title>
+    <link rel="stylesheet" href="../src/export/export.css" />
+    <style>
+      #pages img { width: 300px; border: 1px solid #ddd; margin: 6px; display: inline-block; }
+      #rt { font-family: monospace; color: #0a7; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="head">
+        <h1><span class="logo">TED</span> 导出 PDF · 本地测试</h1>
+        <div class="meta">验证中文渲染 / 换行 / 分页 / PDF 生成</div>
+      </header>
+      <div id="rt" class="meta">状态：<b>渲染中…</b></div>
+      <section class="controls">
+        <span>导出语言：</span>
+        <label class="pill"><input type="radio" name="lang" id="lang-both" value="both" checked /> 英 + 中</label>
+        <label class="pill"><input type="radio" name="lang" id="lang-en" value="en" /> 仅英文</label>
+        <button id="bk" class="btn primary">重建预览</button>
+      </section>
+      <div id="pages" style="margin:8px 0"></div>
+      <main id="preview" class="preview"></main>
+    </div>
+
+    <script>
+      window.__TEDL_EXPORT_SAMPLE__ = {
+        title: 'Do schools kill creativity? (测试换行与分页)',
+        talkId: '66',
+        cues: [
+          { en: 'Good morning. How are you?', zh: '早上好，还好吗？很好吧，对不对？' },
+          { en: 'There have been three themes running through the conference, which are relevant to what I want to talk about.', zh: '这次会议有三个主题贯穿会议始终，并且和我要谈的内容有关。其中一个就是人类创造力的伟大例证。' },
+          { en: 'One is the extraordinary evidence of human creativity in all of the presentations that we have had.', zh: '其中之一就是人类创造力的伟大例证，已经体现在之前的演讲当中。' },
+          { en: "My contention is that creativity now is as important in education as literacy, and we should treat it with the same status.", zh: '我认为创造力和文化知识在教育中占同样比重，所以这两方面我们应同等对待。' },
+          { en: "If you're not prepared to be wrong, you'll never come up with anything original.", zh: '如果你不打算做错误的尝试，你永远不会创造出新东西。' },
+          { en: 'And the third thing about intelligence is, it is distinct.', zh: '关于智力的第三点是，它是独具个性的。' },
+          { en: 'She became a soloist; she had a wonderful career at the Royal Ballet.', zh: '她成为了独舞演员，在皇家芭蕾舞团有过一段辉煌的职业生涯。' },
+          { en: 'And she is responsible for some of the most successful musical theater productions in history.', zh: '她负责了一些历史上最成功音乐剧的制作。' },
+          { en: 'We have to rethink the fundamental principles on which we are educating our children.', zh: '我们必须重新思考那些最基本的准则，也就是我们教育孩子的准则。' },
+          { en: 'And the only way we will do it is by seeing our creative capacities for the richness they are and seeing our children for the hope that they are.', zh: '而达到这个目的唯一的方法就是运用创造力，最大限度地发挥创造力，用孩子们喜欢的方式培养他们。' },
+        ],
+      };
+    </script>
+    <script src="../src/export/pdf-lib.min.js"></script>
+    <script src="../src/export/export.js"></script>
+    <script>
+      (function () {
+        var rt = document.getElementById('rt');
+        function showPages(mode) {
+          var pagesEl = document.getElementById('pages');
+          pagesEl.innerHTML = '';
+          try {
+            var cv = window.__TEDLExport.renderPages(
+              window.__TEDL_EXPORT_SAMPLE__.title,
+              window.__TEDL_EXPORT_SAMPLE__.cues,
+              mode === 'both'
+            );
+            cv.forEach(function (c) {
+              var img = document.createElement('img');
+              img.src = c.toDataURL('image/png');
+              pagesEl.appendChild(img);
+            });
+            rt.innerHTML = '<b>' + cv.length + ' 页渲染成功</b>' + (cv.length > 1 ? '（已分页）' : '');
+          } catch (e) {
+            rt.innerHTML = '<b style="color:#c00">渲染失败：' + (e.message || e) + '</b>';
+          }
+        }
+        function build() {
+          rt.innerHTML = '正在构建 PDF…';
+          window.__TEDLExport
+            .buildPdf(window.__TEDL_EXPORT_SAMPLE__.title, window.__TEDL_EXPORT_SAMPLE__.cues, true)
+            .then(function (bytes) {
+              rt.innerHTML = '<b>PDF 生成成功：' + (bytes.length / 1024).toFixed(1) + ' KB、' + (bytes.length) + ' 字节</b>';
+            })
+            .catch(function (e) {
+              rt.innerHTML = '<b style="color:#c00">PDF 生成失败：' + (e.message || e) + '</b>';
+            });
+        }
+        var curMode = 'both';
+        document.querySelectorAll('input[name="lang"]').forEach(function (r) {
+          r.addEventListener('change', function () {
+            curMode = this.value;
+            showPages(curMode);
+          });
+        });
+        document.getElementById('bk').addEventListener('click', function () { showPages(curMode); build(); });
+        showPages('both');
+        build();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,80 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #f4f5f7;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #1a1a1a;
+}
+.wrap { max-width: 680px; margin: 0 auto; padding: 28px 20px 80px; }
+h1 { font-size: 22px; display: flex; align-items: center; gap: 10px; }
+.logo {
+  background: #e62b1e;
+  color: #fff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+.card {
+  background: #fff;
+  border: 1px solid #e6e8ec;
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+.card h2 { font-size: 16px; margin: 0 0 10px; }
+.desc { font-size: 13px; color: #666; line-height: 1.6; margin: 0 0 12px; }
+.row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.row > label:first-child { min-width: 120px; font-size: 13px; color: #333; }
+.row input[type="text"],
+.row input[type="password"],
+.row input[type="number"],
+.row select {
+  flex: 1;
+  min-width: 180px;
+  border: 1px solid #d8dbe0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+.row input[type="number"] { max-width: 100px; flex: none; }
+.switch { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; min-width: auto !important; }
+.hint { font-size: 12px; color: #888; }
+.adv { margin: 4px 0 8px; }
+.adv > summary { cursor: pointer; font-size: 13px; color: #4a5568; margin-bottom: 8px; }
+.adv .row { margin-bottom: 10px; }
+.row textarea {
+  flex: 1;
+  min-width: 220px;
+  border: 1px solid #d8dbe0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: ui-monospace, Consolas, monospace;
+  resize: vertical;
+}
+.btn {
+  background: #fff;
+  border: 1px solid #d8dbe0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn:hover { background: #f2f3f5; }
+.btn.primary { background: #e62b1e; color: #fff; border-color: #e62b1e; }
+.btn.danger { color: #c0392b; border-color: #e6b3ad; }
+.btn.danger:hover { background: #fdf0ee; }
+.savebar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid #e6e8ec;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TED 双语字幕 · 生词本</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="pop-head">
+      <div class="pop-title">
+        <span class="pop-logo">TED</span>
+        <span>生词本</span>
+        <span class="pop-count" id="count">0</span>
+      </div>
+      <div class="pop-actions">
+        <button id="exportCsv" class="btn">导出 CSV</button>
+        <button id="exportTsv" class="btn">导出 Anki</button>
+        <button id="clearAll" class="btn danger">清空</button>
+      </div>
+    </header>
+
+    <div class="pop-toolbar">
+      <input id="search" type="search" placeholder="搜索单词或释义…" />
+      <label class="switch">
+        <input type="checkbox" id="blurZh" />
+        <span>中文遮罩自测</span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="aiEnabled" />
+        <span>AI 兜底翻译</span>
+      </label>
+      <button id="openOptions" class="btn">设置</button>
+    </div>
+
+    <main id="list" class="pop-list"></main>
+    <div id="empty" class="pop-empty">还没有收藏的生词。在 TED 演讲页点字幕中的英文单词即可收藏。</div>
+
+    <script src="../lib/vocab.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

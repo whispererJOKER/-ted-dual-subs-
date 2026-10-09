@@ -1,0 +1,13 @@
+{
+  "name": "ted-dashscope-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TED 字幕扩展的阿里云百炼(paraformer 实时)转发服务",
+  "main": "relay.js",
+  "scripts": {
+    "start": "node relay.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

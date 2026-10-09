@@ -1,0 +1,12 @@
+# 依赖
+node_modules/
+tools/**/node_modules/
+
+# 打包产物与快照（源码已包含，无需提交）
+dist/
+
+# 其它
+*.log
+.env
+.DS_Store
+Thumbs.db

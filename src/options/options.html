@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TED 双语字幕 · 设置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <h1><span class="logo">TED</span> 双语字幕 · 设置</h1>
+
+      <section class="card">
+        <h2>字幕</h2>
+        <div class="row">
+          <label>默认显示模式</label>
+          <select id="mode">
+            <option value="both">双语（英 + 中）</option>
+            <option value="en">仅英文</option>
+            <option value="zh">仅中文</option>
+            <option value="off">隐藏字幕</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>目标语言代码</label>
+          <input id="zhLang" type="text" placeholder="如 zh-cn / zh-tw / es" />
+          <span class="hint">优先使用 TED 官方字幕；代码需为 TED 支持的形式（简体中文为 zh-cn）。</span>
+        </div>
+        <div class="row">
+          <label>字幕字号</label>
+          <input id="fontSize" type="number" min="0" max="48" step="1" />
+          <span class="hint">0 表示自动（随窗口宽度缩放）。</span>
+        </div>
+        <div class="row">
+          <label class="switch"><input type="checkbox" id="blurZh" /> 默认开启中文遮罩自测</label>
+        </div>
+        <div class="row">
+          <label class="switch"><input type="checkbox" id="transcript" /> 默认展开逐句面板</label>
+        </div>
+        <div class="row">
+          <label>字幕微调</label>
+          <input id="offsetMs" type="number" min="-10000" max="10000" step="100" /> <span>毫秒</span>
+          <span class="hint">正数=字幕更晚。一般无需设置：扩展会自动补偿片头偏移。若个别演讲仍有偏差，可在此微调。</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>AI 兜底翻译</h2>
+        <p class="desc">
+          当某场演讲没有你目标语言的官方字幕时，用 AI 实时翻译英文（OpenAI 兼容接口，如 DeepSeek / OpenAI / 本地模型）。
+          默认关闭。翻译结果会本地缓存，避免重复请求。
+        </p>
+        <div class="row">
+          <label class="switch"><input type="checkbox" id="aiEnabled" /> 启用 AI 兜底翻译</label>
+        </div>
+        <div class="row">
+          <label>接口地址 Base URL</label>
+          <input id="baseUrl" type="text" placeholder="https://api.deepseek.com/v1" />
+        </div>
+        <div class="row">
+          <label>模型名</label>
+          <input id="model" type="text" placeholder="deepseek-chat" />
+        </div>
+        <div class="row">
+          <label>API Key</label>
+          <input id="apiKey" type="password" placeholder="sk-..." />
+        </div>
+        <div class="row">
+          <button id="test" class="btn">测试翻译连接</button>
+          <span id="testResult" class="hint"></span>
+        </div>
+        <p class="hint">
+          Key 仅保存在你的浏览器本地（chrome.storage.local），只会发送到你填写的接口地址。
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>自动识别字幕（语音转写）</h2>
+        <p class="desc">
+          连英文字幕都没有的演讲，用语音识别生成字幕。支持两种方式。
+        </p>
+        <div class="row">
+          <label>识别方式</label>
+          <select id="asrMode">
+            <option value="openai">OpenAI 兼容（上传音频）</option>
+            <option value="relay">阿里云百炼（本地转发）</option>
+            <option value="local">本地 Whisper（浏览器内，仅英文）</option>
+          </select>
+        </div>
+
+        <div id="asrOpenai">
+          <p class="hint">
+            需要支持 <code>POST {地址}/audio/transcriptions</code> 的接口（如 OpenAI <code>whisper-1</code>、自建 FunASR）。
+            <b>DeepSeek / 多数聚合代理不支持</b>，会返回 404。
+          </p>
+          <div class="row">
+            <label>识别接口地址</label>
+            <input id="asrBaseUrl" type="text" placeholder="留空 = 复用上面的翻译接口；如 https://api.openai.com/v1" />
+          </div>
+          <div class="row">
+            <label>识别模型</label>
+            <input id="asrModel" type="text" placeholder="whisper-1" />
+          </div>
+          <div class="row">
+            <label>识别 API Key</label>
+            <input id="asrKey" type="password" placeholder="留空 = 复用上面" />
+          </div>
+          <details class="adv">
+            <summary>高级：路径 / 请求头 / 语言</summary>
+            <div class="row">
+              <label>识别路径</label>
+              <input id="asrPath" type="text" placeholder="/audio/transcriptions" />
+            </div>
+            <div class="row" style="align-items:flex-start">
+              <label>自定义请求头</label>
+              <textarea id="asrHeaders" rows="3" placeholder="每行一个，如：&#10;X-Foo: bar"></textarea>
+            </div>
+            <div class="row">
+              <label>语言（可选）</label>
+              <input id="asrLang" type="text" placeholder="如 en / zh" />
+            </div>
+          </details>
+          <div class="row">
+            <button id="testAsr" class="btn">测试识别接口</button>
+            <span id="testAsrResult" class="hint"></span>
+          </div>
+        </div>
+
+        <div id="asrRelay" style="display:none">
+          <p class="hint">
+            阿里云百炼的识别无法被浏览器直连（WebSocket 不能带 Authorization 头）。请先双击运行
+            <code>tools/dashscope-relay/start.bat</code>（窗口保持打开），再点下方 <b>测试转发服务</b>（<b>不要点</b>上面的“测试识别接口”）。
+          </p>
+          <div class="row">
+            <label>百炼 API Key</label>
+            <input id="relayKey" type="password" placeholder="DASHSCOPE_API_KEY（sk-...，仅发往本机转发服务）" />
+          </div>
+          <div class="row">
+            <label>识别模型</label>
+            <input id="relayModel" type="text" placeholder="paraformer-realtime-v2" />
+          </div>
+          <div class="row">
+            <label>转发地址</label>
+            <input id="relayUrl" type="text" placeholder="http://127.0.0.1:8788" />
+          </div>
+          <div class="row">
+            <label>上传倍速</label>
+            <input id="relaySpeed" type="number" min="1" max="20" step="1" />
+            <span class="hint">音频以几倍速送给百炼（1=实时；过大可能被限流，默认 4）。</span>
+          </div>
+          <div class="row">
+            <button id="testRelay" class="btn">测试转发服务</button>
+            <span id="testRelayResult" class="hint"></span>
+          </div>
+        </div>
+
+        <div id="asrLocal" style="display:none">
+          <p class="hint">
+            纯本地识别（transformers.js + Whisper），<b>无需任何服务或 Key</b>，也<b>只支持英文</b>。
+            首次使用会下载模型（存到浏览器缓存），之后可离线。CPU 上较慢，长音频需要耐心等。
+          </p>
+          <div class="row">
+            <label>模型</label>
+            <select id="localModel">
+              <option value="whisper-tiny.en">whisper-tiny.en（约 40–75MB，快，推荐）</option>
+              <option value="whisper-base.en">whisper-base.en（约 80–150MB，更准更慢）</option>
+            </select>
+          </div>
+          <div class="row">
+            <label>模型下载地址</label>
+            <input id="localHost" type="text" placeholder="https://hf-mirror.com" />
+            <span class="hint">国内默认 hf-mirror 镜像；也可填 https://huggingface.co</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>数据 / 缓存</h2>
+        <p class="desc">
+          清除所有已保存的<b>字幕文档</b>（官方字幕、语音识别、翻译结果）以及临时缓存。
+          <b>不会删除</b>你的设置和生词本。
+        </p>
+        <div class="row">
+          <button id="clearCache" class="btn danger">清除全部字幕缓存</button>
+          <span id="clearCacheResult" class="hint"></span>
+        </div>
+      </section>
+
+      <div class="savebar">
+        <button id="save" class="btn primary">保存设置</button>
+        <span id="saved" class="hint"></span>
+      </div>
+    </div>
+
+    <script src="../lib/vocab.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

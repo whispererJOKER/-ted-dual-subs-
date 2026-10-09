@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>本地 Whisper (transformers.js) 验证</title>
+    <style>
+      body { font-family: -apple-system, "Microsoft YaHei", sans-serif; padding: 20px; }
+      #log { white-space: pre-wrap; font-family: monospace; font-size: 13px; line-height: 1.6; }
+      .ok { color: #0a7; } .err { color: #c00; }
+    </style>
+  </head>
+  <body>
+    <h3>本地 Whisper：抓 TED 音轨 → 转码 → 解码 → transformers.js 识别</h3>
+    <div id="log">开始…</div>
+    <script src="../src/asr/mux.min.js"></script>
+    <script type="module">
+      const log = document.getElementById('log');
+      const proxy = (u) => '/proxy?url=' + encodeURIComponent(u);
+      const out = (t, cls) => { log.innerHTML += '\n<span class="' + (cls || '') + '">' + t + '</span>'; };
+      const concat = (arrs) => { let n=0; arrs.forEach(a=>n+=a.length); const o=new Uint8Array(n); let f=0; arrs.forEach(a=>{o.set(a,f);f+=a.length;}); return o; };
+
+      try {
+        // 1) 抓正片音频（取前 2 片，约 12 秒）
+        const base = 'https://hls.ted.com/project_masters/1253/';
+        const master = await (await fetch(proxy(base + 'manifest.m3u8?intro_master_id=9294'))).text();
+        const audioUri = (master.match(/TYPE=AUDIO[^\n]*URI="([^"]+)"/) || [])[1];
+        const pl = await (await fetch(proxy(base + audioUri))).text();
+        let firstDisc = -1; const lines = pl.split('\n');
+        lines.forEach((l,i)=>{ if(firstDisc<0 && l.trim().indexOf('#EXT-X-DISCONTINUITY')===0) firstDisc=i; });
+        const entries=[]; let dur=null;
+        lines.forEach((l,i)=>{ l=l.trim(); if(l.indexOf('#EXTINF:')===0) dur=parseFloat(l.slice(8)); else if(l && l[0]!=='#' && /\.(ts|m4s|aac)/i.test(l)){ if(firstDisc<0||i>firstDisc) entries.push({url:l,dur}); dur=null; } });
+        const segs=[]; for(let i=0;i<2;i++){ segs.push(new Uint8Array(await (await fetch(proxy(entries[i].url))).arrayBuffer())); }
+        out('音频分片下载完成：' + segs.length + ' 片', 'ok');
+
+        // 2) TS -> m4a
+        const t = new muxjs.mp4.Transmuxer({ remux: true });
+        let init=null; const parts=[];
+        t.on('data', s=>{ if(s.initSegment&&!init) init=s.initSegment; if(s.data) parts.push(s.data); });
+        segs.forEach(u8=>{ t.push(u8); t.flush(); });
+        const m4a = concat([init].concat(parts).filter(Boolean));
+        out('转码 m4a: ' + m4a.length + ' 字节', 'ok');
+
+        // 3) 解码并重采样到 16k 单声道 Float32
+        const ac = new AudioContext();
+        const buf = await ac.decodeAudioData(m4a.buffer.slice(0));
+        const off = new OfflineAudioContext(1, Math.ceil(buf.duration*16000), 16000);
+        const src = off.createBufferSource(); src.buffer = buf; src.connect(off.destination); src.start();
+        const rendered = await off.startRendering();
+        const audio = rendered.getChannelData(0);
+        out('PCM 16k: ' + buf.duration.toFixed(1) + 's, ' + audio.length + ' 采样', 'ok');
+
+        // 4) transformers.js 本地识别
+        const T = await import('../src/asr/vendor/transformers.min.js');
+        const { pipeline, env } = T;
+        env.allowLocalModels = false;
+        // 本地测试页走 /hfmirror 代理（扩展里会用宿主权限直连 hf-mirror.com）
+        env.remoteHost = location.origin + '/hfmirror';
+        env.remotePathTemplate = '{model}/resolve/{revision}/';
+        if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+          env.backends.onnx.wasm.numThreads = 1;
+          env.backends.onnx.wasm.wasmPaths = location.origin + '/src/asr/vendor/ort/';
+        }
+
+        out('正在加载模型 onnx-community/whisper-tiny.en …（首次需下载，请稍候）');
+        const t0 = Date.now();
+        const asr = await pipeline('automatic-speech-recognition', 'onnx-community/whisper-tiny.en', { dtype: 'q8', device: 'wasm' });
+        out('模型加载完成，用时 ' + ((Date.now()-t0)/1000).toFixed(1) + 's', 'ok');
+
+        const t1 = Date.now();
+        const r = await asr(audio, { return_timestamps: true, chunk_length_s: 30, stride_length_s: 5 });
+        out('识别用时 ' + ((Date.now()-t1)/1000).toFixed(1) + 's', 'ok');
+        out('文本: ' + (r.text || '(空)'));
+        out('分句: ' + JSON.stringify(r.chunks || []));
+      } catch (e) {
+        out('异常: ' + (e && (e.message || e)), 'err');
+        out(String(e && e.stack || ''), 'err');
+      }
+    </script>
+  </body>
+</html>

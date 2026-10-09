@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "TED 双语字幕学英语",
+  "version": "0.8.8",
+  "description": "在 TED 演讲页显示英中双语字幕，支持逐句复读、语速控制、点词查义、生词本、导出 PDF 与自动识别字幕。",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://www.ted.com/*",
+    "https://hls.ted.com/*",
+    "https://*.tedcdn.com/*",
+    "https://www.youtube.com/*",
+    "https://*.youtube.com/*",
+    "https://api.dictionaryapi.dev/*",
+    "https://dict.youdao.com/*",
+    "https://huggingface.co/*",
+    "https://hf-mirror.com/*",
+    "https://cdn.jsdelivr.net/*"
+  ],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "TED 双语字幕 · 生词本",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "options_page": "src/options/options.html",
+  "content_scripts": [
+    {
+      "matches": ["https://www.ted.com/talks/*"],
+      "css": ["src/content/overlay.css"],
+      "js": [
+        "src/lib/align.js",
+        "src/lib/ted.js",
+        "src/lib/vocab.js",
+        "src/content/sync.js",
+        "src/content/player.js",
+        "src/content/overlay.js",
+        "src/content/content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "css": ["src/content/overlay.css"],
+      "js": [
+        "src/lib/align.js",
+        "src/lib/vocab.js",
+        "src/content/sync.js",
+        "src/content/player.js",
+        "src/content/overlay.js",
+        "src/content/youtube.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/content/yt-inject.js"],
+      "matches": ["https://www.youtube.com/*"]
+    }
+  ]
+}

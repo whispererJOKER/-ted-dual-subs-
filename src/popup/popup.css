@@ -1,0 +1,91 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0 auto;
+  width: 380px;
+  min-height: 340px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #1a1a1a;
+  background: #fafafa;
+  box-shadow: 0 0 0 1px #eee;
+}
+.pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.pop-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+.pop-logo {
+  background: #e62b1e;
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+.pop-count {
+  background: #eee;
+  border-radius: 10px;
+  padding: 0 7px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.pop-actions { display: flex; gap: 6px; }
+.btn {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 4px 9px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.btn:hover { background: #f2f2f2; }
+.btn.danger { color: #c0392b; border-color: #e6b3ad; }
+.pop-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+.pop-toolbar input[type="search"] {
+  flex: 1;
+  min-width: 120px;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+.switch { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #444; }
+.pop-list { padding: 6px 8px; }
+.word {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+.word-top { display: flex; align-items: baseline; gap: 8px; }
+.word-text { font-weight: 700; font-size: 15px; }
+.word-phon { color: #999; font-size: 12px; }
+.word-count { margin-left: auto; font-size: 11px; color: #aaa; }
+.word-defs { margin: 4px 0; padding-left: 16px; font-size: 13px; color: #333; }
+.word-ctx { font-size: 12px; color: #777; font-style: italic; margin-top: 3px; }
+.word-ctx .hl { color: #e62b1e; font-style: normal; font-weight: 600; }
+.word-foot { display: flex; gap: 6px; margin-top: 6px; }
+.word-foot .btn { font-size: 11px; }
+.pop-empty { padding: 30px 20px; color: #999; text-align: center; font-size: 13px; line-height: 1.6; }

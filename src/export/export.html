@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TED 双语字幕 · 导出 PDF</title>
+    <link rel="stylesheet" href="export.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="head">
+        <h1><span class="logo">TED</span> 字幕导出 PDF</h1>
+        <div id="talkmeta" class="meta">加载中…</div>
+      </header>
+
+      <section class="controls">
+        <span>导出语言：</span>
+        <label class="pill"><input type="radio" name="lang" id="lang-both" value="both" checked /> 英 + 中</label>
+        <label class="pill"><input type="radio" name="lang" id="lang-en" value="en" /> 仅英文</label>
+        <button id="download" class="btn primary">📥 下载 PDF</button>
+        <span id="status" class="status"></span>
+      </section>
+
+      <main id="preview" class="preview"></main>
+    </div>
+
+    <script src="pdf-lib.min.js"></script>
+    <script src="export.js"></script>
+  </body>
+</html>

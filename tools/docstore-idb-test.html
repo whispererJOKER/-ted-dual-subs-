@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head><meta charset="utf-8" /><title>docstore IndexedDB 测试</title>
+  <style>body{font-family:monospace;padding:16px} .ok{color:#0a7}.err{color:#c00}</style></head>
+  <body>
+    <h3>docstore（IndexedDB 文档）验证</h3>
+    <div id="log"></div>
+    <script src="../src/lib/docstore.js"></script>
+    <script>
+      (function () {
+        var log = document.getElementById('log');
+        function out(t, cls) { log.innerHTML += '<div class="' + (cls || '') + '">' + t + '</div>'; }
+        function check(n, c) { out((c ? 'PASS ' : 'FAIL ') + n, c ? 'ok' : 'err'); if (!c) window.__fail = true; }
+        (async function () {
+          var ds = TEDL.docstore;
+          try {
+            await ds.remove('t1');
+            await ds.seed('t1', '标题', [{ start: 1000, end: 2000, en: 'A', zh: '甲' }], { enSource: 'official' });
+            var d = await ds.get('t1');
+            check('seed 写入', d && d.cues.length === 1 && d.cues[0].zh === '甲');
+
+            await ds.patchEn('t1', { cues: [{ start: 1000, end: 2000, en: 'A' }, { start: 3000, end: 4000, en: 'B' }] });
+            d = await ds.get('t1');
+            check('识别进度写英文后：中文保留', d.cues[0].zh === '甲', 'zh=' + d.cues[0].zh);
+            check('新增句已加入', d.cues.length === 2);
+
+            await ds.patchZh('t1', [{ en: 'B', zh: '乙' }]);
+            d = await ds.get('t1');
+            check('翻译写入按英文匹配', d.cues[1].en === 'B' && d.cues[1].zh === '乙');
+
+            var all = await ds.list();
+            check('可列出文档', all.some(function (x) { return x.talkId === 't1'; }));
+
+            await ds.remove('t1');
+            d = await ds.get('t1');
+            check('删除生效', !d);
+
+            out(window.__fail ? '存在失败项' : '全部通过 ✅', window.__fail ? 'err' : 'ok');
+          } catch (e) {
+            out('异常：' + (e && e.message), 'err');
+          }
+        })();
+      })();
+    </script>
+  </body>
+</html>

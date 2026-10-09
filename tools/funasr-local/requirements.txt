@@ -1,0 +1,6 @@
+# FunASR 本地识别服务（OpenAI 兼容，供 TED 字幕扩展「自动识别字幕」使用）
+fastapi>=0.100
+uvicorn>=0.23
+python-multipart>=0.0.6
+funasr>=1.1.0
+soundfile>=0.12
